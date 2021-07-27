@@ -147,11 +147,11 @@ void PolygonEditor::Export(const std::string& filename) {
 		writer << "len:" << p.len << "|";
 		writer << "n:" << p.n_vertices << "|";
 		writer << "rgb:" << (int)p.color.r << "," << (int)p.color.g << "," << (int)p.color.b << "|";
-		writer << "mass:" << mass << "|";
-		writer << "I: " << (mass * len * len / 12.0f) << "|";
-		writer << "res:" << e << "|";
-		writer << "sf:" << sf << "|";
-		writer << "df:" << df << "\n";
+		writer << "mass:" << p.mass << "|";
+		writer << "I: " << (p.mass * p.len * p.len / 12.0f) << "|";
+		writer << "res:" << p.e << "|";
+		writer << "sf:" << p.sf << "|";
+		writer << "df:" << p.df << "\n";
 	}
 
 	writer.close();

@@ -18,6 +18,8 @@ public:
 
 	float mass = 0.0f, inv_mass = 0.0f;
 	float I = 0.0f, inv_I = 0.0f;
+	float sf = 0.0f, df = 0.0f;
+	float e = 0.0f;
 	float angular_velocity = 0.0f;
 public:
 	PolygonObject() {}
@@ -50,6 +52,10 @@ public:
 	float angle = 0.0f, len = 10.0f;
 	int n_vertices = 4;
 	int r = 255, g = 255, b = 255;
+
+	float mass = 0.0f;
+	float sf = 0.0f, df = 0.0f;
+	float e = 0.0f;
 
 	bool is_polygon_add = false;
 public:
@@ -118,12 +124,16 @@ void PolygonObject::Draw(olc::PixelGameEngine* pge, const olc::vf2d& offset) {
 
 // Polygon Editor Implementation
 PolygonEditor::PolygonEditor() {
-	gui.create_window("window", "Polygon Settings", { 0, 0 }, { 200, 100 });
+	gui.create_window("window", "Physics Settings", { 0, 0 }, { 200, 165 });
 	gui.set_active_window("window");
 	gui.add_int_slider("vertices", "Vertices:", { 80, 10 }, { 80, 10 }, { 3, 10 }, &n_vertices);
 	gui.add_int_slider("red", "R:", { 80, 25 }, { 80, 10 }, { 0, 255 }, &r);
 	gui.add_int_slider("green", "G:", { 80, 40 }, { 80, 10 }, { 0, 255 }, &g);
 	gui.add_int_slider("blue", "B:", { 80, 55 }, { 80, 10 }, { 0, 255 }, &b);
+	gui.add_float_slider("mass", "Mass:", { 80, 70 }, { 80, 10 }, { 0.0f, 100.0f }, &mass);
+	gui.add_float_slider("restitution", "e:", { 80, 85 }, { 80, 10 }, { 0.0f, 1.0f }, &e);
+	gui.add_float_slider("static_friction", "sf:", { 80, 100 }, { 80, 10 }, { 0.0f, 1.0f }, &sf);
+	gui.add_float_slider("dynamic_friction", "df:", { 80, 115 }, { 80, 10 }, { 0.0f, 1.0f }, &df);
 }
 
 void PolygonEditor::Export(const std::string& filename) {
@@ -136,7 +146,12 @@ void PolygonEditor::Export(const std::string& filename) {
 		writer << "scale:" << p.scale.x << "," << p.scale.y << "|";
 		writer << "len:" << p.len << "|";
 		writer << "n:" << p.n_vertices << "|";
-		writer << "rgb:" << (int)p.color.r << "," << (int)p.color.g << "," << (int)p.color.b << "\n";
+		writer << "rgb:" << (int)p.color.r << "," << (int)p.color.g << "," << (int)p.color.b << "|";
+		writer << "mass:" << mass << "|";
+		writer << "I: " << (mass * len * len / 12.0f) << "|";
+		writer << "res:" << e << "|";
+		writer << "sf:" << sf << "|";
+		writer << "df:" << df << "\n";
 	}
 
 	writer.close();
@@ -186,6 +201,11 @@ void PolygonEditor::Import(const std::string& filename) {
 			else if (data_type == "len") p.len = data_value[0];
 			else if (data_type == "n") p.n_vertices = data_value[0];
 			else if (data_type == "rgb") p.color = olc::Pixel(data_value[0], data_value[1], data_value[2]);
+			else if (data_type == "mass") { p.mass = data_value[0]; p.inv_mass = p.mass == 0.0f ? 0.0f : 1.0f / p.mass; }
+			else if (data_type == "I") { p.I = data_value[0]; p.inv_I = p.I == 0.0f ? 0.0f : 1.0f / p.I; }
+			else if (data_type == "e") p.e = data_value[0];
+			else if (data_type == "sf") p.sf = data_value[0];
+			else if (data_type == "df") p.df = data_value[0];
 		}
 		p.model.resize(p.n_vertices);
 		p.vertices.resize(p.n_vertices);
@@ -290,6 +310,13 @@ void PolygonEditor::OnMouseReleaseAdd() {
 	polygon.model = model;
 	polygon.vertices = vertices;
 	polygon.scale = scale;
+	polygon.mass = mass;
+	polygon.inv_mass = mass == 0.0f ? 0.0f : 1.0f / mass;
+	polygon.I = mass * (len * len) / 12.0f;
+	polygon.inv_I = polygon.I == 0.0f ? 0.0f : 1.0f / polygon.I;
+	polygon.e = e;
+	polygon.sf = sf;
+	polygon.df = df;
 	polygon.color = olc::Pixel(r, g, b);
 
 	polygons.push_back(polygon);

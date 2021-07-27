@@ -142,13 +142,14 @@ void PolygonEditor::Export(const std::string& filename) {
 
 	for (auto& p : polygons) {
 		writer << "pos:" << p.position.x + offset.x << "," << p.position.y + offset.y << "|";
+		writer << "offset:" << offset.x << "," << offset.y << "|";
 		writer << "angle:" << p.angle << "|";
 		writer << "scale:" << p.scale.x << "," << p.scale.y << "|";
 		writer << "len:" << p.len << "|";
 		writer << "n:" << p.n_vertices << "|";
 		writer << "rgb:" << (int)p.color.r << "," << (int)p.color.g << "," << (int)p.color.b << "|";
 		writer << "mass:" << p.mass << "|";
-		writer << "I: " << (p.mass * p.len * p.len / 12.0f) << "|";
+		writer << "I:" << (p.mass * p.len * p.len / 12.0f) << "|";
 		writer << "res:" << p.e << "|";
 		writer << "sf:" << p.sf << "|";
 		writer << "df:" << p.df << "\n";
